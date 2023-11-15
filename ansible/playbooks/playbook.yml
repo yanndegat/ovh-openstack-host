@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: true
+  vars:
+    k3s_become: true
+    k3s_server:
+      disable:
+        - traefik
+  roles:
+     - name: '../../roles/system-prepare'
+       vars:
+         setup_kernel: yes
+         override_hostname: no
+         setup_apt: yes
+         setup_packages: yes
+
+     - xanmanning.k3s
+     - name: '../../roles/setup-k3s'

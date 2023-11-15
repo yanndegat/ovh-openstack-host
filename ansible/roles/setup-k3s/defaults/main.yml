@@ -1,0 +1,4 @@
+---
+default_manifests: []
+
+manifests: "{{ default_manifests }}"

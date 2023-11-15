@@ -1,0 +1,29 @@
+load("@rules_tf//tf:def.bzl", "tf_format", "tf_gen_doc", "tf_providers_versions")
+
+tf_providers_versions(
+    name = "versions",
+    tf_version = "1.5.7",
+    versions = {
+        "local": "hashicorp/local:2.4.0",
+        "null": "hashicorp/null:3.1.1",
+        "openstack": "terraform-provider-openstack/openstack:1.53.0",
+        "random": "hashicorp/random:3.3.2",
+        "tls": "hashicorp/tls:4.0.2",
+    },
+)
+
+tf_format(
+    name = "fmt",
+    modules = ["//{}/{}".format(
+        package_name(),
+        m,
+    ) for m in subpackages(include = ["**/*.tf"])],
+)
+
+tf_gen_doc(
+    name = "gen-doc",
+    modules = ["//{}/{}".format(
+        package_name(),
+        m,
+    ) for m in subpackages(include = ["**/*.tf"])],
+)

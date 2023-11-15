@@ -1,0 +1,19 @@
+---
+setup_apt: yes
+setup_kernel: yes
+setup_packages: yes
+override_hostname: yes
+
+required_directories:
+  - /mnt/volumes
+
+force_reboot: no
+reboot: no
+safe_reboot: no
+reboot_timeout: 600
+
+traits: []
+
+apt_sources: []
+
+kernel_packages: []

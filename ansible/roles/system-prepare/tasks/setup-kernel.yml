@@ -1,0 +1,54 @@
+---
+- name: Install kernel related stuff
+  apt:
+    name:
+      - "{{ item }}"
+    dpkg_options: force-downgrade
+    force: yes
+    update_cache: yes
+    state: present
+    install_recommends: no
+  with_items: "{{ kernel_packages }}"
+  notify:
+    - Reboot
+    - Reboot | Kured
+
+- name: Adding mandatory kernel modules
+  ansible.builtin.copy:
+    src: kernel-modules-all.conf
+    dest: /etc/modules-load.d/cook-all.conf
+  notify:
+    - Reboot
+    - Reboot | Kured
+
+- name: Adding kernel modules for baremetal
+  ansible.builtin.copy:
+    src: kernel-modules-baremetal.conf
+    dest: /etc/modules-load.d/cook-baremetal.conf
+  when: '"baremetal" in traits'
+  notify:
+    - Reboot
+    - Reboot | Kured
+
+- name: Reloading modules
+  ansible.builtin.systemd:
+    state: restarted
+    name: systemd-modules-load.service
+
+- name: Setup sysctl parameters
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+  with_dict: {
+    net.bridge.bridge-nf-call-iptables: 1,
+    net.ipv4.ip_forward: 1,
+    net.ipv4.tcp_keepalive_intvl: 10,
+    net.ipv4.tcp_keepalive_probes: 4,
+    net.ipv4.tcp_keepalive_time: 30,
+    fs.inotify.max_user_instances: 512
+  }
+
+- name: Apply sysctl rules
+  shell: sysctl -p --system

@@ -1,0 +1,32 @@
+---
+- name: Install prerequisites debian packages for apt
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+    state: latest
+    install_recommends: no
+  vars:
+    packages:
+      - gpg
+      - gpg-agent
+
+- name: add apt sources keys
+  apt_key:
+    url: "{{ item.key }}"
+    state: present
+  with_items: "{{ apt_sources }}"
+
+- name: add apt repository
+  apt_repository:
+    repo: "{{ item.repo }}"
+    state: present
+  with_items: "{{ apt_sources }}"
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Perform apt upgrade
+  apt:
+    upgrade: yes
+    force_apt_get: yes

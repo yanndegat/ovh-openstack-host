@@ -1,0 +1,13 @@
+load("@rules_tf//tf:def.bzl", "tf_module")
+
+tf_module(
+    name = "host",
+    providers = [
+        "openstack",
+        "tls",
+    ],
+    deps = [
+        "//ansible/playbooks",
+    ],
+    providers_versions = "@//terraform:versions",
+)

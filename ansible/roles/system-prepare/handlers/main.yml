@@ -1,0 +1,45 @@
+---
+- name: APT | Upgrade
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Systemd | Restart systemd-networkd
+  systemd:
+    name: systemd-networkd.service
+    state: restarted
+    enabled: yes
+
+- name: Systemd | Restart systemd-resolved
+  systemd:
+    name: systemd-resolved.service
+    state: restarted
+    enabled: yes
+
+- name: Systemd | Restart systemd-timesyncd
+  systemd:
+    name: systemd-timesyncd.service
+    state: restarted
+    enabled: yes
+
+- name: SSH | Restart
+  systemd:
+    name: sshd.service
+    state: restarted
+    enabled: true
+
+# keep these handlers at the end of the file
+# to ensure that a reboot task is the last
+# to be called
+
+- name: Reboot | Kured
+  ansible.builtin.file:
+    path: /var/run/reboot-required
+    state: touch
+    mode: '0644'
+  when: ansible_connection != 'local' and (kubelet_running|bool) or (safe_reboot|bool)
+
+- name: Reboot
+  reboot:
+    reboot_timeout: '{{reboot_timeout}}'
+  when: ansible_connection != 'local' and (not (kubelet_running|bool)) or (force_reboot|bool)

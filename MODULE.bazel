@@ -1,0 +1,17 @@
+module(
+    name = "ovh-openstack-host",
+    version = "0.0.1",
+)
+
+bazel_dep(name = "rules_pkg", version = "0.9.1")
+bazel_dep(name = "rules_tf", version = "0.0.1")
+# local_path_override(
+#     module_name = "rules_tf",
+#     path = "../rules_tf",
+# )
+
+git_override(
+    module_name = "rules_tf",
+    commit = "299df19bed9db126dbf9de50b8669007c372a257",
+    remote = "https://github.com/yanndegat/rules_tf",
+)

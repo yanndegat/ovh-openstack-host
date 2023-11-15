@@ -1,0 +1,63 @@
+---
+- name: Check if kubelet is running
+  ansible.builtin.command: pgrep kubelet
+  ignore_errors: true
+  changed_when: false
+  # Forces this task to also run in check mode
+  check_mode: false
+  register: kubelet_check
+
+- name: Set fact whether kubelet is running or not
+  set_fact:
+    kubelet_running: "{{ (kubelet_check.rc == 0) and (kubelet_check.stdout | length > 0) }}"
+
+# Ensure Kured reboot file is not present before performing action on the node
+- name: Kured file should be absent on the node before performing any action
+  ansible.builtin.file:
+    path: /var/run/reboot-required
+    state: absent
+
+# Setup hostname
+- name: 'Check hostname is defined'
+  assert:
+    that:
+      - hostname is defined
+      - hostname != ""
+  when: override_hostname|bool
+
+- name: Setup hostname
+  hostname:
+    name: "{{ hostname }}"
+  when: override_hostname|bool
+
+# Setup apt
+- include: setup-apt.yml
+  tags:
+    - setup-apt
+  when: setup_apt|bool
+
+- name: 'Create required {{ item }} directory'
+  file: path="{{ item }}" state=directory owner=root group=root mode=0775
+  with_items: "{{ required_directories }}"
+
+# Setup kernel
+- include: setup-kernel.yml
+  tags:
+    - setup-kernel
+  when: setup_kernel|bool
+
+# Setup packages
+- include: setup-packages.yml
+  tags:
+    - setup-packages
+  when: setup_packages|bool
+
+- name: Force reboot
+  debug: msg="force reboot"
+  notify: Reboot
+  changed_when: force_reboot|bool
+
+- name: Safe reboot
+  debug: msg="kured reboot"
+  notify: Reboot | Kured
+  changed_when: safe_reboot|bool
